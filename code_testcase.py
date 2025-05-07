@@ -7,10 +7,13 @@ import os
 import random
 from tqdm import tqdm
 from openai import OpenAI
-from utils import get_model, get_prompt_testcase, API_KEY, REPEAT_T, TEST_DATA
+#from utils import get_model, get_prompt_testcase, API_KEY, REPEAT_T, TEST_DATA
+from utils import get_model_7b, get_prompt_testcase, API_KEY, REPEAT_T, TEST_DATA # bug fix
+import sys
 
 root_path = os.path.dirname(__file__)
-DEVICE = 'cuda:1'
+#DEVICE = 'cuda:1'
+DEVICE = 'cuda:0' # ML only has one GPU
 
 def reorder_string(s):
     lines = s.strip().split('\n')
@@ -36,6 +39,8 @@ if __name__ == "__main__":
 
     for code_model in tqdm(models):
         
+        code_model = 'codellama'
+
         for k,d in enumerate(data):
 
             topic = d['topic']
@@ -50,6 +55,7 @@ if __name__ == "__main__":
 
                 for j in range(REPEAT_T):
                     # get question with random order
+                    print(f'[DEBUG] loop code_model {code_model}, k,d in enumerate(data) = {k}, {d}, code_type = {code_type}, j repeat = {j}')
                     question = reorder_string(d['question'])
                     full_question = question + code
                     if code_model == 'codegemma':
@@ -59,7 +65,8 @@ if __name__ == "__main__":
                         # initialize model with random seed
                         seed = random.randint(0, 100)
                         set_seed(seed)
-                        model, tokenizer = get_model(code_model, DEVICE)
+                        print(f'[DEBUG] full_question = {full_question}, prompt = {prompt}, seed = {seed}, creating model with get_model')
+                        model, tokenizer = get_model_7b(code_model, DEVICE) # typo in original github? get_model does not take device argument
                         if 'qwen' in code_model:
                             text = tokenizer.apply_chat_template(
                                 prompt,
@@ -69,12 +76,14 @@ if __name__ == "__main__":
                             input_ids = tokenizer([text], return_tensors="pt")["input_ids"].to(DEVICE)
                         else:
                             input_ids = tokenizer(prompt, return_tensors="pt")["input_ids"].to(DEVICE)
+                        print(f'[DEBUG] model created, generating output')
                         output = model.generate(
                             input_ids,
                             max_new_tokens=600,
                         )
                         output = output[0].to("cpu")
                         filling = tokenizer.decode(output[input_ids.shape[1]:], skip_special_tokens=True)
+                        print(f'[DEBUG] filling/response = {filling}')
                     else:
                         client = OpenAI(api_key=API_KEY)
                         completion = client.chat.completions.create(
@@ -90,3 +99,4 @@ if __name__ == "__main__":
                         filling = completion.choices[0].message.content
                     print(filling)
                     write_data(write_file_name, topic, filling)
+                    sys.exit() # debug
