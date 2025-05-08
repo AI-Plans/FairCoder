@@ -1,10 +1,11 @@
 from transformers import AutoModel, AutoTokenizer, GemmaTokenizer, AutoModelForCausalLM, AutoConfig
 import torch
+import os
 
 # OpenAI API key
 API_KEY = ''
 # HuggingFace Token
-HF_TOKEN = ''
+HF_TOKEN = os.getenv('HF_TOKEN')
 # Iteration of function implementation
 REPEAT_F = 10
 # Iteration of function implementation
