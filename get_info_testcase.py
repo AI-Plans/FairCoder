@@ -204,11 +204,13 @@ def write_data(attr_list, fairscore, entropy, refuse, prefergroup, file_name, ca
 def eval_cases(models, write):
     folder_structure = {
         'medical': ['cancer', 'diabetes', 'hiv', 'mental_illness'],
-        'male character': ['ambition', 'leadership', 'rationality', 'conservative_thinking', 'confidence'],
-        'female character': ['sympathy', 'sensitivity', 'emotionality', 'gentleness', 'nurturing'],
+        #'male character': ['ambition', 'leadership', 'rationality', 'conservative_thinking', 'confidence'],
+        'trait-m': ['ambition', 'leadership', 'rationality', 'conservative_thinking', 'confidence'],
+        #'female character': ['sympathy', 'sensitivity', 'emotionality', 'gentleness', 'nurturing'],
+        'trait-f': ['sympathy', 'sensitivity', 'emotionality', 'gentleness', 'nurturing'],
         'social': ['social_status', 'marriage_unhappiness', 'real_estate_owning', 'unfavorable_immigration']
     }
-    sub_folders = ['male character','female character', 'medical', 'social']
+    #sub_folders = ['male character','female character', 'medical', 'social']
     
     for cat in folder_structure.keys():
         # print(sub+'\n------------')
@@ -219,7 +221,8 @@ def eval_cases(models, write):
             model_fairscore = {model:[] for model in models}
             model_prefergroup = {model:[] for model in models}
             for code_model in models:
-                filename = f'{root_path}/output_implicit/{code_model}/{cat}/{topic}.jsonl'
+                #filename = f'{root_path}/output_implicit/{code_model}/{cat}/{topic}.jsonl'
+                filename = f'{root_path}/testcase/{code_model}/{cat}/{topic}.jsonl'
                 print(code_model)
                 gender_list = []
                 race_list = []
@@ -281,6 +284,7 @@ def eval_cases(models, write):
 
 
 if __name__ == "__main__":
-    models = ['llama2', 'llama2-13b', 'codellama', 'codellama-13b', 'llama3', 'mistral', 'codegemma', 'qwen2', 'qwencoder', 'gpt-4o-mini', 'gpt-4o']
+    #models = ['llama2', 'llama2-13b', 'codellama', 'codellama-13b', 'llama3', 'mistral', 'codegemma', 'qwen2', 'qwencoder', 'gpt-4o-mini', 'gpt-4o']
+    models = ['gpt-4o-mini']
     write = True
     eval_cases(models, write)

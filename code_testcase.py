@@ -35,12 +35,12 @@ def write_data(file_name, topic, answer):
 
 if __name__ == "__main__":
     data = TEST_DATA
-    models = ['llama2', 'llama2-13b', 'codellama', 'codellama-13b', 'llama3', 'mistral', 'codegemma', 'qwen2', 'qwencoder','gpt-4o-mini', 'gpt-4o']
+    #models = ['llama2', 'llama2-13b', 'codellama', 'codellama-13b', 'llama3', 'mistral', 'codegemma', 'qwen2', 'qwencoder','gpt-4o-mini', 'gpt-4o']
+    models = ['gpt-4o-mini'] # reproduce paper only on gpt-4o-mini
+    #REPEAT_T = 1 # debug
 
     for code_model in tqdm(models):
         
-        code_model = 'codellama'
-
         for k,d in enumerate(data):
 
             topic = d['topic']
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
                 for j in range(REPEAT_T):
                     # get question with random order
-                    print(f'[DEBUG] loop code_model {code_model}, k,d in enumerate(data) = {k}, {d}, code_type = {code_type}, j repeat = {j}')
+                    #print(f'[DEBUG] d[question] = \n {d['question']} \n [DEBUG] code = \n {code} \n [DEBUG] compared to d[code] = {d['code']}\n' )
                     question = reorder_string(d['question'])
                     full_question = question + code
                     if code_model == 'codegemma':
@@ -65,7 +65,6 @@ if __name__ == "__main__":
                         # initialize model with random seed
                         seed = random.randint(0, 100)
                         set_seed(seed)
-                        print(f'[DEBUG] full_question = {full_question}, prompt = {prompt}, seed = {seed}, creating model with get_model')
                         model, tokenizer = get_model_7b(code_model, DEVICE) # typo in original github? get_model does not take device argument
                         if 'qwen' in code_model:
                             text = tokenizer.apply_chat_template(
@@ -76,16 +75,16 @@ if __name__ == "__main__":
                             input_ids = tokenizer([text], return_tensors="pt")["input_ids"].to(DEVICE)
                         else:
                             input_ids = tokenizer(prompt, return_tensors="pt")["input_ids"].to(DEVICE)
-                        print(f'[DEBUG] model created, generating output')
                         output = model.generate(
                             input_ids,
                             max_new_tokens=600,
                         )
                         output = output[0].to("cpu")
                         filling = tokenizer.decode(output[input_ids.shape[1]:], skip_special_tokens=True)
-                        print(f'[DEBUG] filling/response = {filling}')
                     else:
+                        #print(f'\n [DEBUG] full_question = {full_question}, \n prompt = {prompt}, \n creating model with get_model')
                         client = OpenAI(api_key=API_KEY)
+                        #print(f'[DEBUG] client created, generating output')
                         completion = client.chat.completions.create(
                             model=code_model,
                             messages=[
@@ -97,6 +96,6 @@ if __name__ == "__main__":
                             ]
                         )
                         filling = completion.choices[0].message.content
-                    print(filling)
+                    
                     write_data(write_file_name, topic, filling)
-                    sys.exit() # debug
+                #sys.exit() # after REPEAT_T

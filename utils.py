@@ -3,8 +3,7 @@ import torch
 import os
 
 # OpenAI API key
-API_KEY = ''
-# HuggingFace Token
+API_KEY = os.getenv("OPENAI_API_KEY")
 HF_TOKEN = os.getenv('HF_TOKEN')
 # Iteration of function implementation
 REPEAT_F = 10
